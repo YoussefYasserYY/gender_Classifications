@@ -2,6 +2,3 @@ numpy==1.23.3
 Pillow==9.4.0
 streamlit==1.19.0
 tensorflow==2.11.0
-tensorflow-estimator==2.11.0
-tensorflow-intel==2.11.0
-tensorflow-io-gcs-filesystem==0.30.0
