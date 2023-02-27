@@ -1,70 +1,86 @@
 from PIL import Image
-# import pickle
 import numpy as np
 import tensorflow as tf
 import streamlit as st
-
-
-# train_datagen = data_augment(rescale = 1./255)
-
-# train_datagen = ImageDataGenerator(rescale=1 / 255.0)
-
-#data preprocessing and augmentation
-
-# traind = train_datagen.flow_from_directory(r"C:\Users\ghost\Desktop\gender_classification\test",
-#                                           target_size = (96, 96),
-# )
-
-# loaded_model = pickle.load(open('C:/Users/ghost/Desktop/gender_classification/trained_model_gender.sav', 'rb'))
-
+import time
 
 
 json_file = open('model.json', 'r')
 loaded_model_json = json_file.read()
 json_file.close()
 loaded_model = tf.keras.models.model_from_json(loaded_model_json)
-# load weights into new model
 loaded_model.load_weights("model.h5")
 
+def add_bg_from_url():
+    st.markdown(
+         f"""
+         <style>
+         .stApp {{
+             background-image: url("https://cdn.pixabay.com/photo/2019/04/24/11/27/flowers-4151900_960_720.jpg");
+             background-attachment: fixed;
+             background-size: cover
+         }}
+         </style>
+         """,
+         unsafe_allow_html=True
+     )
+
+add_bg_from_url() 
+
+
+def classify(out):
+    progress_text = "Predicting..."
+    my_bar = st.progress(0, text=progress_text)
+
+    for percent_complete in range(100):
+        time.sleep(0.0015)
+        my_bar.progress(percent_complete + 1, text=progress_text)
+    if(out[0][0]>out[0][1]):
+        st.subheader('Female')
+    elif(out[0][0]<out[0][1]):
+        st.subheader('male')
+    else:
+        st.subheader('Could not define')
+
+
+def classify_camera(img_file_buffer):
+    if (img_file_buffer != None):
+        cam = Image.open(img_file_buffer)
+        print(type(cam))
+        cam = np.resize(cam,(1,96,96,3))   
+        out = loaded_model.predict(cam)
+        classify(out)
+
+
+def classify_imported(img):
+    img = np.resize(img,(1,96,96,3))
+    y = loaded_model.predict(img)
+    classify(y)
+
+    
 
 
 def main():
-
-    st.title('Gender classification model')
-    img_file_buffer = st.camera_input("Take a picture")
+    st.title('Gender Classification')
 
 
-    if img_file_buffer is not None:
-        # To read image file buffer as a PIL Image:
-        cam = Image.open(img_file_buffer)
-        cam = np.resize(cam,(1,96,96,3))   
-        print(np.shape(cam))
-        x = loaded_model.predict(cam)
-        #print(x)
-        if(x[0][0]>x[0][1]):
-            #print('Female')
-            st.write('Female')
-        else:
-            st.write('male')
-            #print('Male')
+    with st.expander("Open Camera"):
+        img_file_buffer = st.camera_input("Show your face and Capture")
+        if img_file_buffer:
+            print(type(img_file_buffer))
+            if (st.button("Predict Gender")):
+                classify_camera(img_file_buffer)
+
+    with st.expander('Import photo'):
+        img = st.file_uploader('import photo')
+        if (img):
+            st.image(img, caption='imported image', width=None, use_column_width=None, clamp=False, channels="RGB", output_format="auto")
+            img = Image.open(img)
+            classify_imported(img)
     
 if __name__ == '__main__':
     main()
 
-
-
-# cam = plt.imread('download.jpg')
-# # cam = Image.open(img_file_buffer)
-# cam = np.resize(cam,(1,96,96,3))   
-# print(np.shape(cam))
-# x = loaded_model.predict(cam)
-# print(x)
-# if(x[0][0]>x[0][1]):
-#     print('Female')
-#     st.write('Female')
-# else:
-#     st.write('male')
-#     print('Male')
 
 
 
