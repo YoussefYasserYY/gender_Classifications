@@ -2,14 +2,18 @@ from PIL import Image
 import numpy as np
 import tensorflow as tf
 import streamlit as st
+import pickle
 import time
 
 
-json_file = open('model.json', 'r')
-loaded_model_json = json_file.read()
-json_file.close()
-loaded_model = tf.keras.models.model_from_json(loaded_model_json)
-loaded_model.load_weights("model.h5")
+# json_file = open('model.json', 'r')
+# loaded_model_json = json_file.read()
+# json_file.close()
+# loaded_model = tf.keras.models.model_from_json(loaded_model_json)
+# loaded_model.load_weights("model.h5")
+
+pickled_model = pickle.load(open('log_reg.pkl', 'rb'))
+# pickled_model.predict(X_test)
 
 def add_bg_from_url():
     st.markdown(
@@ -35,26 +39,31 @@ def classify(out):
     for percent_complete in range(100):
         time.sleep(0.0015)
         my_bar.progress(percent_complete + 1, text=progress_text)
-    if(out[0][0]>out[0][1]):
+    # if(out[0][0]>out[0][1]):
+    #     st.subheader('Female')
+    # elif(out[0][0]<out[0][1]):
+    #     st.subheader('male')
+    # else:
+    #     st.subheader('Could not define')
+    if(out == 0):
         st.subheader('Female')
-    elif(out[0][0]<out[0][1]):
+    elif(out== 1):
         st.subheader('male')
     else:
         st.subheader('Could not define')
-
 
 def classify_camera(img_file_buffer):
     if (img_file_buffer != None):
         cam = Image.open(img_file_buffer)
         print(type(cam))
-        cam = np.resize(cam,(1,96,96,3))   
-        out = loaded_model.predict(cam)
+        cam = np.resize(cam,(1,2500))   
+        out = pickled_model.predict(cam)
         classify(out)
 
 
 def classify_imported(img):
-    img = np.resize(img,(1,96,96,3))
-    y = loaded_model.predict(img)
+    img = np.resize(img,(1,2500))
+    y = pickled_model.predict(img)
     classify(y)
 
     
@@ -77,6 +86,8 @@ def main():
             st.image(img, caption='imported image', width=None, use_column_width=None, clamp=False, channels="RGB", output_format="auto")
             img = Image.open(img)
             classify_imported(img)
+
+            
     
 if __name__ == '__main__':
     main()
