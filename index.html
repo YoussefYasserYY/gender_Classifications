@@ -1,1 +1,40 @@
-"Hello World" 
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Video Chat</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/agora-rtc-sdk/3.0.0/agorartc.js"></script>
+</head>
+<body>
+  <div id="video-container"></div>
+  <script>
+    var appId = "YOUR_APP_ID";
+    var token = "YOUR_TOKEN";
+    var channelName = "YOUR_CHANNEL_NAME";
+    var client = new AgoraRTC({
+      appId: appId,
+      token: token,
+      channelName: channelName,
+    });
+    client.on("joinChannelSuccess", function() {
+      console.log("Joined channel");
+    });
+    client.on("userJoined", function(user) {
+      console.log("User joined: " + user.uid);
+      var video = document.createElement("video");
+      video.srcObject = user.localStream;
+      video.style.width = "100%";
+      video.style.height = "100%";
+      document.getElementById("video-container").appendChild(video);
+    });
+    client.on("userLeft", function(user) {
+      console.log("User left: " + user.uid);
+      var video = document.getElementById("video-" + user.uid);
+      if (video) {
+        document.getElementById("video-container").removeChild(video);
+      }
+    });
+    client.startPreview();
+    client.joinChannel();
+  </script>
+</body>
+</html>
